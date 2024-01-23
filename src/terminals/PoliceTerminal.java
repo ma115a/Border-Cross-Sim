@@ -38,74 +38,77 @@ public class PoliceTerminal extends Terminal {
             }
         }
         if(badPassengers.size() > 0) {
-            Incident incident = new Incident(badPassengers, this, vehicle);
-            FileUtil.writeToTextFile(incident);
-            Simulation.incidents.add(incident);
+            // Incident incident = new Incident(badPassengers, this, vehicle);
+            // FileUtil.writeToTextFile(incident);
+            // Simulation.incidents.add(incident);
             if (badPassengers.contains(vehicle.getPassengers().getFirst())) {
+                FileUtil.writeToBinaryFile(new Incident(badPassengers, this.getTerminalName(), vehicle.getIconName(), vehicle.getVehicleID(), "Police problem", true));
                 return false;
             }
             else {
+                FileUtil.writeToBinaryFile(new Incident(badPassengers, this.getTerminalName(), vehicle.getIconName(), vehicle.getVehicleID(), "Police problem", false));
+
                 vehicle.removePassengers(badPassengers);
             }
         }
         return true;
     }
 
-    public synchronized boolean process(Truck vehicle) {
+    // public synchronized boolean process(Truck vehicle) {
 
 
-        Simulation.vehicles.poll();
-        try {
+    //     Simulation.vehicles.poll();
+    //     try {
             
-            Thread.sleep(PoliceTerminal.processTime * vehicle.getPassengerCount());
-        }
-        catch(Exception e) {
-            Simulation.logger.severe(e.getMessage());
-        }
-        return this.checkPassengers(vehicle);
-    }
+    //         Thread.sleep(PoliceTerminal.processTime * vehicle.getPassengerCount());
+    //     }
+    //     catch(Exception e) {
+    //         Simulation.logger.severe(e.getMessage());
+    //     }
+    //     return this.checkPassengers(vehicle);
+    // }
 
-    public synchronized boolean process(PersonalVehicle vehicle) {
+    // public synchronized boolean process(PersonalVehicle vehicle) {
 
-        Simulation.vehicles.poll();
+    //     Simulation.vehicles.poll();
 
-        try {
+    //     try {
             
-            Thread.sleep(PoliceTerminal.processTime * vehicle.getPassengerCount());
+    //         Thread.sleep(PoliceTerminal.processTime * vehicle.getPassengerCount());
 
-        } catch (Exception e) {
-            Simulation.logger.severe(e.getMessage());
-        }
+    //     } catch (Exception e) {
+    //         Simulation.logger.severe(e.getMessage());
+    //     }
 
-        return this.checkPassengers(vehicle);
-    }
+    //     return this.checkPassengers(vehicle);
+    // }
 
-    public synchronized boolean process(Bus vehicle) {
+    // public synchronized boolean process(Bus vehicle) {
 
 
-        Simulation.vehicles.poll();
+    //     Simulation.vehicles.poll();
 
-        try {
+    //     try {
 
-            Thread.sleep(PoliceTerminal.processTimeBus * vehicle.getPassengerCount());
+    //         Thread.sleep(PoliceTerminal.processTimeBus * vehicle.getPassengerCount());
 
-        } catch (Exception e) {
-            Simulation.logger.severe(e.getMessage());
-        }
-        return this.checkPassengers(vehicle);
+    //     } catch (Exception e) {
+    //         Simulation.logger.severe(e.getMessage());
+    //     }
+    //     return this.checkPassengers(vehicle);
         
-    }
+    // }
 
 
     public synchronized boolean process(Vehicle vehicle) {
         Simulation.vehicles.poll();
-        if(vehicle instanceof PersonalVehicle) {
+        if(vehicle instanceof IPersonalVehicle) {
             try {
                 Thread.sleep(PoliceTerminal.processTime * vehicle.getPassengerCount());
             } catch (Exception e) {
                 Simulation.logger.severe(e.getMessage());
             }
-        } else if(vehicle instanceof Truck) {
+        } else if(vehicle instanceof ITruck) {
             try {
                 Thread.sleep(PoliceTerminal.processTime * vehicle.getPassengerCount());
             } catch (Exception e) {

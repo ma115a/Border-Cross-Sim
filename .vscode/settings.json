@@ -2,6 +2,14 @@
     "java.project.sourcePaths": ["src"],
     "java.project.outputPath": "bin",
     "java.project.referencedLibraries": [
-        "lib/**/*.jar"
+        "lib/**/*.jar",
+        "/lib/jvm/java-21-openjfx/lib/javafx.base.jar",
+        "/lib/jvm/java-21-openjfx/lib/javafx.controls.jar",
+        "/lib/jvm/java-21-openjfx/lib/javafx.fxml.jar",
+        "/lib/jvm/java-21-openjfx/lib/javafx.graphics.jar",
+        "/lib/jvm/java-21-openjfx/lib/javafx.media.jar",
+        "/lib/jvm/java-21-openjfx/lib/javafx.swing.jar",
+        "/lib/jvm/java-21-openjfx/lib/javafx.web.jar",
+        "/lib/jvm/java-21-openjfx/lib/javafx-swt.jar"
     ]
 }

@@ -1,2 +1,0 @@
-Jan 10, 2024 2:34:56 AM utils.FileTerminalWatcher <init>
-SEVERE: Cannot invoke "String.isEmpty()" because "line" is null

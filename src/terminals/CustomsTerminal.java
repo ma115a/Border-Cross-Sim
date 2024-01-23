@@ -3,6 +3,7 @@ import java.util.ArrayList;
 
 import main.Simulation;
 import passengers.*;
+import utils.FileUtil;
 import vehicles.*;
 import incidents.Incident;
 public class CustomsTerminal extends Terminal {
@@ -27,11 +28,14 @@ public class CustomsTerminal extends Terminal {
         }
 
         if(badPassengers.size() > 0) {
-            Simulation.incidents.add(new Incident(badPassengers, this, vehicle));
+            // Simulation.incidents.add(new Incident(badPassengers, this, vehicle));
             if(badPassengers.contains(vehicle.getPassengers().getFirst())) {
+                FileUtil.writeToTextFile(new Incident(badPassengers, this.getTerminalName(), vehicle.getIconName(), vehicle.getVehicleID(), "Baggage problem", true));
                 return false;
             }
             else {
+                FileUtil.writeToTextFile(new Incident(badPassengers, this.getTerminalName(), vehicle.getIconName(), vehicle.getVehicleID(), "Baggage problem", false));
+
                 vehicle.removePassengers(badPassengers);
                 System.out.println("Passengers removed!");
             }
@@ -39,64 +43,64 @@ public class CustomsTerminal extends Terminal {
         return true;
     }
 
-    public boolean process(Truck vehicle) {
+    // public boolean process(Truck vehicle) {
 
-        // System.out.println("Truck" + vehicle.getVehicleID() + " is on customs terminal!");
+    //     // System.out.println("Truck" + vehicle.getVehicleID() + " is on customs terminal!");
 
-        try {
-            for(int i = 0; i < vehicle.getPassengerCount(); i++) {
-                Thread.sleep(passengerProcessTime);
-            }
-        } catch (Exception e) {
-            Simulation.logger.severe(e.getMessage());
-        }
-
-
-        //checking for documentation
-        if(vehicle.needsDocumentation()) {
-            try {
-                Thread.sleep(1_000);
-                vehicle.setDocumentation(true);
-                System.out.println("Truck" + vehicle.getVehicleID() + " documentation generated!");
-            } catch (Exception e) {
-                Simulation.logger.severe(e.getMessage());
-            }
-        }
+    //     try {
+    //         for(int i = 0; i < vehicle.getPassengerCount(); i++) {
+    //             Thread.sleep(passengerProcessTime);
+    //         }
+    //     } catch (Exception e) {
+    //         Simulation.logger.severe(e.getMessage());
+    //     }
 
 
-        //check for mass
-        if(vehicle.getRealMass() > vehicle.getDeclaredMass()) {
-            System.out.println("Truck" + vehicle.getVehicleID() + " is overweight!");
-            return false;
-        }
-        return true;
-    }
+    //     //checking for documentation
+    //     if(vehicle.needsDocumentation()) {
+    //         try {
+    //             Thread.sleep(1_000);
+    //             vehicle.setDocumentation(true);
+    //             System.out.println("Truck" + vehicle.getVehicleID() + " documentation generated!");
+    //         } catch (Exception e) {
+    //             Simulation.logger.severe(e.getMessage());
+    //         }
+    //     }
 
-    public boolean process(PersonalVehicle vehicle) {
 
-        try {
-            Thread.sleep(2_000);
-        } catch (Exception e) {
-            Simulation.logger.severe(e.getMessage());
-        }
-        return true;
-    }
+    //     //check for mass
+    //     if(vehicle.getRealMass() > vehicle.getDeclaredMass()) {
+    //         System.out.println("Truck" + vehicle.getVehicleID() + " is overweight!");
+    //         return false;
+    //     }
+    //     return true;
+    // }
 
-    public boolean process(Bus vehicle) {
+    // public boolean process(PersonalVehicle vehicle) {
 
-        try {
+    //     try {
+    //         Thread.sleep(2_000);
+    //     } catch (Exception e) {
+    //         Simulation.logger.severe(e.getMessage());
+    //     }
+    //     return true;
+    // }
+
+    // public boolean process(Bus vehicle) {
+
+    //     try {
             
-            Thread.sleep(vehicle.getPassengerCount() * CustomsTerminal.passengerProcessTimeBus);
+    //         Thread.sleep(vehicle.getPassengerCount() * CustomsTerminal.passengerProcessTimeBus);
 
-        } catch (Exception e) {
-            Simulation.logger.severe(e.getMessage());
-        }
+    //     } catch (Exception e) {
+    //         Simulation.logger.severe(e.getMessage());
+    //     }
 
-        return this.checkBaggage(vehicle);
-    }
+    //     return this.checkBaggage(vehicle);
+    // }
     
     public boolean process(Vehicle vehicle) {
-        if(vehicle instanceof Truck) {
+        if(vehicle instanceof ITruck) {
             try {
                 Thread.sleep(passengerProcessTime * vehicle.getPassengerCount());
             } catch (Exception e) {
@@ -115,13 +119,14 @@ public class CustomsTerminal extends Terminal {
             }
 
             if(((Truck) vehicle).getRealMass() > ((Truck) vehicle).getDeclaredMass()) {
+                FileUtil.writeToTextFile(new Incident(vehicle.getPassengers(), this.getTerminalName(), vehicle.getIconName(), vehicle.getVehicleID(), "Overweight problem", true));
                 System.out.println("Truck" + vehicle.getVehicleID() + " is overweight!");
                 return false;
             }
 
             return true;
         }
-        else if(vehicle instanceof PersonalVehicle) {
+        else if(vehicle instanceof IPersonalVehicle) {
             try {
                 Thread.sleep(2_000);
             } catch (Exception e) {

@@ -1,0 +1,2 @@
+false#21.01.2024-17:32:16#Bus3.png#376291#Customs 1#Baggage problem#Aya Landrum 330822#Joana Marroquin 161412
+true#21.01.2024-17:32:27#Truck1.png#44724#Customs 3#Overweight problem#Celine Cloud 690963#Jett Cloud 138260#Ian Locklear 365807

@@ -9,6 +9,8 @@ import java.io.FileReader;
 import java.util.HashMap;
 import java.util.Map;
 
+import javafx.application.Platform;
+import main.Main;
 import main.Simulation;
 
 
@@ -90,6 +92,25 @@ public class TerminalFileStalker extends Thread {
         Simulation.policeTerminal3.setWorking(this.statuses.get("P3"));
         Simulation.customsTerminal1.setWorking(this.statuses.get("C1"));
         Simulation.customsTerminal3.setWorking(this.statuses.get("C2"));
+
+
+        // if(this.statuses.get("P1")) {
+        //     Main.policeTerminal1 = Main.policeTerminal1active;
+        // }
+        // else {
+        //     Main.policeTerminal1 = Main.policeTerminal1inactive;
+        // }
+        // if(this.statuses.get("P2")) Main.policeTerminal2 = Main.policeTerminal2active;
+        // else Main.policeTerminal2 = Main.policeTerminal2inactive;
+
+        // if(this.statuses.get("P3")) Main.policeTerminal3 = Main.policeTerminal3active;
+        // else Main.policeTerminal3 = Main.policeTerminal3inactive;
+
+        // if(this.statuses.get("C1")) Main.customsTerminal1 = Main.customsTerminal1active;
+        // else Main.customsTerminal1 = Main.customsTerminal1inactive;
+
+        // if(this.statuses.get("C2")) Main.customsTerminal2 = Main.customsTerminal2active;
+        // else Main.customsTerminal2 = Main.customsTerminal2inactive;
     }
 
 

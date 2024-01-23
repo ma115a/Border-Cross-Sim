@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import main.Simulation;
 import passengers.Baggage;
 import passengers.Passenger;
-// import java.util.List;
+import javafx.application.Platform;
+import javafx.scene.image.ImageView;
+import main.Main;
 public abstract class Vehicle extends Thread {
     
     protected ArrayList<Passenger> passengers;
@@ -13,6 +15,10 @@ public abstract class Vehicle extends Thread {
     protected String vehicleType;
 
     protected int vehicleID;
+
+    protected ImageView icon;
+
+    protected String iconName;
     
     public String getVehicleType() {
         return this.vehicleType;
@@ -42,6 +48,13 @@ public abstract class Vehicle extends Thread {
         return this.passengers.size();
     }
 
+    public ImageView getIcon() {
+        return this.icon;
+    }
+
+    public String getIconName() {
+        return this.iconName;
+    }
     
     // @Override
     // public String toString() {
@@ -65,6 +78,19 @@ public abstract class Vehicle extends Thread {
         return this.vehicleID;
     }
 
+    public void checkSimulationPause() {
+        synchronized(Simulation.pauseObject) {
+            if(Main.simulationPaused) {
+                try {
+                    Simulation.pauseObject.wait();
+                } catch (Exception e) {
+                    Simulation.logger.severe(e.getMessage());
+                }
+    
+            }
+        }
+    }
+
 
 
 
@@ -73,7 +99,7 @@ public abstract class Vehicle extends Thread {
     @Override
     public void run() {
 
-        if("Truck".equals(this.vehicleType)) {
+        if(this instanceof ITruck) {
 
             boolean terminalOccupied = false;
 
@@ -82,20 +108,27 @@ public abstract class Vehicle extends Thread {
                     if(Simulation.policeTerminal3.isWorking() && Simulation.policeTerminal3.isAcceptingTrucks() && Simulation.policeTerminal3.isFree()) {
                         Simulation.policeTerminal3.occupy();
                         terminalOccupied = true;
+                        this.checkSimulationPause();
+                        Platform.runLater(() -> Main.setPoliceTerminal3Vehicle(this.icon));
                         if(Simulation.policeTerminal3.process(this)) {
-                            System.out.println("Truck" + this.vehicleID + " successfully passed Police Terminal! " + Simulation.policeTerminal3.getTerminalName());
+                            System.out.println(this.getClass().getName() + this.vehicleID + " successfully passed Police Terminal! " + Simulation.policeTerminal3.getTerminalName());
                             while(true) {
                                 if(Simulation.customsTerminal3.isAcceptingTrucks() && Simulation.customsTerminal3.isWorking()) {
                                     synchronized(Simulation.customsTerminal3) {
                                         Simulation.policeTerminal3.free();
+                                        Platform.runLater(() -> Main.setPoliceTerminal3Vehicle(null));
+                                        Platform.runLater(() -> Main.setCustomsTerminal2Vehicle(this.icon));
+                                        this.checkSimulationPause();
                                         if(Simulation.customsTerminal3.process(this)) {
-                                            System.out.println("Truck" + this.vehicleID + " successfully passed Customs Terminal! " + Simulation.customsTerminal3.getTerminalName());
+                                            System.out.println(this.getClass().getName() + this.vehicleID + " successfully passed Customs Terminal! " + Simulation.customsTerminal3.getTerminalName());
                                             Simulation.successVehclesCounter++;
+                                            Platform.runLater(() -> Main.setCustomsTerminal2Vehicle(null));
                                             break;
                                         }
                                         else {
-                                            System.out.println("Truck" + this.vehicleID + " failed to pass Customs Terminal!");
+                                            System.out.println(this.getClass().getName() + this.vehicleID + " failed to pass Customs Terminal!");
                                             Simulation.failedVehiclesCounter++;
+                                            Platform.runLater(() -> Main.setCustomsTerminal2Vehicle(null));
                                             break;
                                         }
                                     }
@@ -103,15 +136,16 @@ public abstract class Vehicle extends Thread {
                             }
                         }
                         else {
+                            Platform.runLater(() -> Main.setPoliceTerminal3Vehicle(null));
                             Simulation.policeTerminal3.free();
                             Simulation.failedVehiclesCounter++;
-                            System.out.println("Truck" + this.vehicleID + " failed to pass Police Terminal!");
+                            System.out.println(this.getClass().getName() + this.vehicleID + " failed to pass Police Terminal!");
                         }
                     }
                 }
             }
         }
-        else if("Personal Vehicle".equals(this.vehicleType)) {
+        else if(this instanceof IPersonalVehicle) {
             boolean terminalOccupied = false;
 
             while(!terminalOccupied) {
@@ -119,59 +153,85 @@ public abstract class Vehicle extends Thread {
                     if(Simulation.policeTerminal1.isWorking() && Simulation.policeTerminal1.isAcceptingPersonalVehicles() && Simulation.policeTerminal1.isFree()) {
                         Simulation.policeTerminal1.occupy();
                         terminalOccupied = true;
+                        this.checkSimulationPause();
+                        Platform.runLater(() -> Main.setPoliceTerminal1Vehicle(this.icon));
                         if(Simulation.policeTerminal1.process(this)) {
-                            System.out.println("Personal Vehicle" + this.vehicleID + " succesfully passed Police terminal " + Simulation.policeTerminal1.getTerminalName());
+                            System.out.println(this.getClass().getName() + this.vehicleID + " succesfully passed Police terminal " + Simulation.policeTerminal1.getTerminalName());
+                            Simulation.onCustomsVehicles.add(this);
                             while(true) {
-                                if(Simulation.customsTerminal1.isAcceptingPersonalVehicles() && Simulation.customsTerminal1.isWorking()) {
-                                    synchronized(Simulation.customsTerminal1) {
-                                        Simulation.policeTerminal1.free();
-                                        if(Simulation.customsTerminal1.process(this)) {
-                                            System.out.println("Personal Vehicle" + this.vehicleID + " succesfully passed Customs terminal! " + Simulation.customsTerminal1.getTerminalName());
-                                            Simulation.successVehclesCounter++;
-                                            break;
-                                        }
-                                        else {
-                                            System.out.println("Personal Vehicle" + this.vehicleID + " failed to pass Customs terminal!");
-                                            Simulation.failedVehiclesCounter++;
-                                            break;
+                                if(this.equals(Simulation.onCustomsVehicles.peek())) {
+                                    if(Simulation.customsTerminal1.isAcceptingPersonalVehicles() && Simulation.customsTerminal1.isWorking()) {
+                                        synchronized(Simulation.customsTerminal1) {
+                                            Simulation.onCustomsVehicles.poll();
+                                            Simulation.policeTerminal1.free();
+                                            Platform.runLater(() -> Main.setPoliceTerminal1Vehicle(null));
+                                            Platform.runLater(() -> Main.setCustomsTerminal1Vehicle(this.icon));
+                                            this.checkSimulationPause();
+                                            if(Simulation.customsTerminal1.process(this)) {
+                                                System.out.println(this.getClass().getName() + this.vehicleID + " succesfully passed Customs terminal! " + Simulation.customsTerminal1.getTerminalName());
+                                                Simulation.successVehclesCounter++;
+                                                Platform.runLater(() -> Main.setCustomsTerminal1Vehicle(null));
+                                                break;
+                                            }
+                                            else {
+                                                System.out.println(this.getClass().getName() + this.vehicleID + " failed to pass Customs terminal!");
+                                                Simulation.failedVehiclesCounter++;
+                                                Platform.runLater(() -> Main.setCustomsTerminal1Vehicle(null));
+                                                break;
+                                            }
                                         }
                                     }
+
                                 }
                             }
                         }
                         else {
+                            Platform.runLater(() -> Main.setPoliceTerminal1Vehicle(null));
                             Simulation.policeTerminal1.free();
                             Simulation.failedVehiclesCounter++;
-                            System.out.println(this.vehicleType + this.vehicleID + " failed to pass Police Terminal " + Simulation.policeTerminal1.getTerminalName());
+                            System.out.println(this.getClass().getName() + this.vehicleID + " failed to pass Police Terminal " + Simulation.policeTerminal1.getTerminalName());
                         }
                     }
                     else if(Simulation.policeTerminal2.isWorking() && Simulation.policeTerminal2.isAcceptingPersonalVehicles() && Simulation.policeTerminal2.isFree()) {
                         Simulation.policeTerminal2.occupy();
                         terminalOccupied = true;
+                        this.checkSimulationPause();
+                        Platform.runLater(() -> Main.setPoliceTerminal2Vehicle(this.icon));
                         if(Simulation.policeTerminal2.process(this)) {
-                            System.out.println("Personal Vehicle" + this.vehicleID + " succesfully passed Police terminal " + Simulation.policeTerminal2.getTerminalName());
+                            System.out.println(this.getClass().getName() + this.vehicleID + " succesfully passed Police terminal " + Simulation.policeTerminal2.getTerminalName());
+                            Simulation.onCustomsVehicles.add(this);
                             while(true) {
-                                if(Simulation.customsTerminal1.isAcceptingPersonalVehicles() && Simulation.customsTerminal1.isWorking()) {
-                                    synchronized(Simulation.customsTerminal1) {
-                                        Simulation.policeTerminal2.free();
-                                        if(Simulation.customsTerminal1.process(this)) {
-                                            System.out.println("Personal Vehicle" + this.vehicleID + " succesfully passed Customs terminal! " + Simulation.customsTerminal1.getTerminalName());
-                                            Simulation.successVehclesCounter++;
-                                            break;
-                                        }
-                                        else {
-                                            System.out.println("Personal Vehicle" + this.vehicleID + " failed to pass Customs terminal!");
-                                            Simulation.failedVehiclesCounter++;
-                                            break;
+                                if(this.equals(Simulation.onCustomsVehicles.peek())) {
+                                    if(Simulation.customsTerminal1.isAcceptingPersonalVehicles() && Simulation.customsTerminal1.isWorking()) {
+                                        synchronized(Simulation.customsTerminal1) {
+                                            Simulation.onCustomsVehicles.poll();
+                                            Simulation.policeTerminal2.free();
+                                            Platform.runLater(() -> Main.setPoliceTerminal2Vehicle(null));
+                                            Platform.runLater(() -> Main.setCustomsTerminal1Vehicle(this.icon));
+                                            this.checkSimulationPause();
+                                            if(Simulation.customsTerminal1.process(this)) {
+                                                System.out.println(this.getClass().getName() + this.vehicleID + " succesfully passed Customs terminal! " + Simulation.customsTerminal1.getTerminalName());
+                                                Simulation.successVehclesCounter++;
+                                                Platform.runLater(() -> Main.setCustomsTerminal1Vehicle(null));
+                                                break;
+                                            }
+                                            else {
+                                                System.out.println(this.getClass().getName() + this.vehicleID + " failed to pass Customs terminal!");
+                                                Simulation.failedVehiclesCounter++;
+                                                Platform.runLater(() -> Main.setCustomsTerminal1Vehicle(null));
+                                                break;
+                                            }
                                         }
                                     }
+
                                 }
                             }
                         }
                         else {
+                            Platform.runLater(() -> Main.setPoliceTerminal2Vehicle(null));
                             Simulation.policeTerminal2.free();
                             Simulation.failedVehiclesCounter++;
-                            System.out.println(this.vehicleType + this.vehicleID + " failed to pass Police Terminal " + Simulation.policeTerminal2.getTerminalName());
+                            System.out.println(this.getClass().getName() + this.vehicleID + " failed to pass Police Terminal " + Simulation.policeTerminal2.getTerminalName());
                         }
                     }
                 }
@@ -187,51 +247,73 @@ public abstract class Vehicle extends Thread {
                     if(Simulation.policeTerminal1.isWorking() && Simulation.policeTerminal1.isAcceptingBusses() && Simulation.policeTerminal1.isFree()) {
                         Simulation.policeTerminal1.occupy();
                         terminalOccupied = true;
-
+                        this.checkSimulationPause();
+                        Platform.runLater(() -> Main.setPoliceTerminal1Vehicle(this.icon));
                         if(Simulation.policeTerminal1.process(this)) {
-                            System.out.println("Bus" + this.vehicleID + " sucessfuly passed Police terminal " + Simulation.policeTerminal1.getTerminalName());
+                            System.out.println(this.getClass().getName() + this.vehicleID + " sucessfuly passed Police terminal " + Simulation.policeTerminal1.getTerminalName());
+                            Simulation.onCustomsVehicles.add(this);
                             while(true) {
-                                if(Simulation.customsTerminal1.isAcceptingBusses() && Simulation.customsTerminal1.isWorking()) {
-                                    synchronized(Simulation.customsTerminal1) {
-                                        Simulation.policeTerminal1.free();
-                                        if(Simulation.customsTerminal1.process(this)) {
-                                            System.out.println(this.vehicleType + this.vehicleID + " successfully passed Customs terminal " + Simulation.customsTerminal1.getTerminalName());
-                                            Simulation.successVehclesCounter++;
-                                            break;
-                                        }
-                                        else {
-                                            System.out.println(this.vehicleType + this.vehicleID + " failed to pass Customs terminal " + Simulation.customsTerminal1.getTerminalName());
-                                            Simulation.failedVehiclesCounter++;
-                                            break;   
+                                if(this.equals(Simulation.onCustomsVehicles.peek())) {
+                                    if(Simulation.customsTerminal1.isAcceptingBusses() && Simulation.customsTerminal1.isWorking()) {
+                                        synchronized(Simulation.customsTerminal1) {
+                                            Simulation.onCustomsVehicles.poll();
+                                            Simulation.policeTerminal1.free();
+                                            Platform.runLater(() -> Main.setPoliceTerminal1Vehicle(null));
+                                            Platform.runLater(() -> Main.setCustomsTerminal1Vehicle(this.icon));
+                                            this.checkSimulationPause();
+                                            if(Simulation.customsTerminal1.process(this)) {
+                                                System.out.println(this.getClass().getName() + this.vehicleID + " successfully passed Customs terminal " + Simulation.customsTerminal1.getTerminalName());
+                                                Simulation.successVehclesCounter++;
+                                                Platform.runLater(() -> Main.setCustomsTerminal1Vehicle(null));
+                                                break;
+                                            }
+                                            else {
+                                                System.out.println(this.getClass().getName() + this.vehicleID + " failed to pass Customs terminal " + Simulation.customsTerminal1.getTerminalName());
+                                                Simulation.failedVehiclesCounter++;
+                                                Platform.runLater(() -> Main.setCustomsTerminal1Vehicle(null));
+                                                break;   
+                                            }
                                         }
                                     }
+
                                 }
                             }
                         }
                         else {
                             Simulation.policeTerminal1.free();
-                            System.out.println(this.vehicleType + this.vehicleID + " failed to pass Police terminal " + Simulation.policeTerminal1.getTerminalName());
+                            Platform.runLater(() -> Main.setPoliceTerminal1Vehicle(null));
+                            System.out.println(this.getClass().getName() + this.vehicleID + " failed to pass Police terminal " + Simulation.policeTerminal1.getTerminalName());
                         }
                     }
                     else if(Simulation.policeTerminal2.isWorking() && Simulation.policeTerminal2.isAcceptingBusses() && Simulation.policeTerminal2.isFree()) {
                         Simulation.policeTerminal2.occupy();
                         terminalOccupied = true;
-
+                        this.checkSimulationPause();
+                        Platform.runLater(() -> Main.setPoliceTerminal2Vehicle(this.icon));
                         if(Simulation.policeTerminal2.process(this)) {
-                            System.out.println(this.vehicleType + this.vehicleID + " successfully passed Police terminal " + Simulation.policeTerminal2.getTerminalName());
+                            System.out.println(this.getClass().getName() + this.vehicleID + " successfully passed Police terminal " + Simulation.policeTerminal2.getTerminalName());
+                            Simulation.onCustomsVehicles.add(this);
                             while(true) {
-                                if(Simulation.customsTerminal1.isAcceptingBusses() && Simulation.customsTerminal1.isWorking()) {
-                                    synchronized(Simulation.customsTerminal1) {
-                                        Simulation.policeTerminal2.free();
-                                        if(Simulation.customsTerminal1.process(this)) {
-                                            System.out.println(this.vehicleType + this.vehicleID + " successfully passed Customs terminal " + Simulation.customsTerminal1.getTerminalName());
-                                            Simulation.successVehclesCounter++;
-                                            break;
-                                        }
-                                        else {
-                                            System.out.println(this.vehicleType + this.vehicleID + " failed to pass Customs terminal " + Simulation.customsTerminal1.getTerminalName());
-                                            Simulation.failedVehiclesCounter++;
-                                            break;
+                                if(this.equals(Simulation.onCustomsVehicles.peek())) {
+                                    if(Simulation.customsTerminal1.isAcceptingBusses() && Simulation.customsTerminal1.isWorking()) {
+                                        synchronized(Simulation.customsTerminal1) {
+                                            Simulation.onCustomsVehicles.poll();
+                                            Simulation.policeTerminal2.free();
+                                            Platform.runLater(() -> Main.setPoliceTerminal2Vehicle(null));
+                                            Platform.runLater(() -> Main.setCustomsTerminal1Vehicle(this.icon));
+                                            this.checkSimulationPause();
+                                            if(Simulation.customsTerminal1.process(this)) {
+                                                System.out.println(this.getClass().getName() + this.vehicleID + " successfully passed Customs terminal " + Simulation.customsTerminal1.getTerminalName());
+                                                Simulation.successVehclesCounter++;
+                                                Platform.runLater(() -> Main.setCustomsTerminal1Vehicle(null));
+                                                break;
+                                            }
+                                            else {
+                                                System.out.println(this.getClass().getName() + this.vehicleID + " failed to pass Customs terminal " + Simulation.customsTerminal1.getTerminalName());
+                                                Simulation.failedVehiclesCounter++;
+                                                Platform.runLater(() -> Main.setCustomsTerminal1Vehicle(null));
+                                                break;
+                                            }
                                         }
                                     }
                                 }
@@ -239,7 +321,8 @@ public abstract class Vehicle extends Thread {
                         }
                         else {
                             Simulation.policeTerminal2.free();
-                            System.out.println(this.vehicleType + this.vehicleID + " failed to pass Police terminal " + Simulation.policeTerminal2.getTerminalName());
+                            Platform.runLater(() -> Main.setPoliceTerminal2Vehicle(null));
+                            System.out.println(this.getClass().getName() + this.vehicleID + " failed to pass Police terminal " + Simulation.policeTerminal2.getTerminalName());
                             Simulation.failedVehiclesCounter++;
                         }
                     }

@@ -1,5 +1,8 @@
 package passengers;
-public class Passenger {
+
+import java.io.Serializable;
+
+public class Passenger implements Serializable{
 
     private Document document;
     private String name;
@@ -14,6 +17,12 @@ public class Passenger {
         this.name = name;
         this.lastName = lastName;
     }
+
+    public Passenger(String name, String lastName, int documentId, boolean isValid) {
+        this.document = new Document(documentId, isValid);
+        this.name = name;
+        this.lastName = lastName;
+    }
     
 
     public String getName() {
@@ -22,6 +31,10 @@ public class Passenger {
 
     public String getLastName() {
         return this.lastName;
+    }
+
+    public String getFullName() {
+        return this.name + " " + this.lastName;
     }
 
     public void setName(String name) {

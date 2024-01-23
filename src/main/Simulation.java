@@ -22,7 +22,7 @@ public class Simulation {
 
 
 
-    public static ArrayBlockingQueue<Vehicle> vehicles = new ArrayBlockingQueue<>(120);
+    public static ArrayBlockingQueue<Vehicle> vehicles = new ArrayBlockingQueue<>(50);
     public static ArrayList<Vehicle> tmpVehicles = new ArrayList<>();
 
     public static PoliceTerminal policeTerminal3 = new PoliceTerminal("Police 3", true, false, true, false);
@@ -39,20 +39,24 @@ public class Simulation {
 
     public static TerminalFileStalker ftw = new TerminalFileStalker();
 
+    public static ArrayBlockingQueue<Vehicle> onCustomsVehicles = new ArrayBlockingQueue<>(2);
+
+    public static Object pauseObject = new Object();
+
     public static int successVehclesCounter = 0;
     public static int failedVehiclesCounter = 0;
 
     public static void populateVehicles() {
-        for(int i = 0; i < 50; i++) {   
+        for(int i = 0; i < 35; i++) {   
             tmpVehicles.add(new PersonalVehicle());
         }
 
-        for(int i = 0; i < 40; i++) {
-            // tmpVehicles.add(new Truck());
+        for(int i = 0; i < 10; i++) {
+            tmpVehicles.add(new Truck());
         }
 
-        for(int i = 0; i < 40; i++) {
-            // tmpVehicles.add(new Bus());
+        for(int i = 0; i < 5; i++) {
+            tmpVehicles.add(new Bus());
         }
 
 
@@ -64,6 +68,18 @@ public class Simulation {
         for(Incident incident : incidents) {
             System.out.println(incident);
         }
+    }
+
+    public static void simulationRun() {
+        // populateVehicles();
+        for(Vehicle vehicle : vehicles) {
+            System.out.println(vehicle.getClass().getName() + " " + vehicle.getVehicleID());
+            vehicle.setDaemon(true);
+            vehicle.start();
+        }
+        
+        ftw.setDaemon(true);
+        ftw.start();
     }
     
 }

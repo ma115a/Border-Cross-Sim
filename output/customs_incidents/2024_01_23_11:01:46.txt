@@ -1,0 +1,6 @@
+false#23.01.2024-11:02:13#Bus2.png#321464#Customs 1#Baggage problem#Maximillian Steed 783982
+false#23.01.2024-11:02:35#Bus3.png#606032#Customs 1#Baggage problem#Cordell Devries 981378#Aya Cloud 755461#Joana Locklear 396670#Waylon Landrum 275364#Celine Southard 74230#Kailey Raymond 231975
+false#23.01.2024-11:03:09#Bus1.png#704329#Customs 1#Baggage problem#Ian Whiteside 910456#Phillip Marroquin 430052
+false#23.01.2024-11:03:24#Bus1.png#142286#Customs 1#Baggage problem#Ian Fajardo 83054
+false#23.01.2024-11:03:38#Bus2.png#115340#Customs 1#Baggage problem#Aya Fajardo 201262#Esteban Landrum 896261#Waylon Whiteside 436741#Kiana Whiteside 63303#Cora Daniels 255080
+true#23.01.2024-11:03:46#Truck3.png#172495#Customs 3#Overweight problem#Guillermo Locklear 591768#Phillip Daniels 105612

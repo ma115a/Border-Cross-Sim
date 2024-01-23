@@ -1,8 +1,9 @@
 package passengers;
+import java.io.Serializable;
 import java.util.Random;
 
 
-public class Document {
+public class Document implements Serializable {
 
     private static final double validDocumentBound = 0.03;
     
@@ -20,6 +21,11 @@ public class Document {
         if(probability <= validDocumentBound) {
             this.isValid = false;
         }
+    }
+
+    public Document(int documentId, boolean isValid) {
+        this.documentId = documentId;
+        this.isValid = isValid;
     }
 
     public boolean isValid() {

@@ -1,10 +1,14 @@
 package utils;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Random;
 
 import passengers.Baggage;
 import passengers.Passenger;
 
+import javafx.scene.image.*;
+
+import main.Main;
 
 
 
@@ -52,5 +56,24 @@ public class RandomData {
         }
         return result;
 
+    }
+
+
+    public static String getRandomVehicleIconName(String vehicleType) {
+        String iconName = vehicleType + (rand.nextInt(3) + 1) + ".png";
+        return iconName;
+
+    }
+
+    public static ImageView getVehicleIcon(String iconName) {
+        double factor = 0.08;
+        String path = "img" + File.separator + iconName;
+        Image img = new Image(new File(path).toURI().toString());
+
+        ImageView imv = new ImageView(img);
+        imv.setPreserveRatio(true);
+        imv.fitHeightProperty().bind(Main.mainStage.heightProperty().multiply(factor));
+        imv.fitWidthProperty().bind(Main.mainStage.widthProperty().multiply(factor));
+        return imv;
     }
 }
